@@ -2,23 +2,21 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <title>Quest Record</title>
+  <title>Quest Select</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-    html, body {
-      height: 100%;
-      margin: 0;
+    body {
       font-family: 'Segoe UI', sans-serif;
+      background: #1f1f1f;
       color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
+      height: 100vh;
+      margin: 0;
     }
     .container {
+      max-width: 500px;
       width: 100%;
-      max-width: 480px;
       background-color: #333;
       padding: 30px;
       border-radius: 12px;
@@ -41,45 +39,48 @@
       font-size: 16px;
     }
     button {
-      margin-top: 20px;
       background-color: #00ffc8;
       color: #000;
       font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #00ccaa;
+      margin-top: 20px;
     }
     .info {
       margin-top: 20px;
-      font-size: 14px;
+    }
+    #requirement, #reward {
+      font-size: 18px;
+      font-weight: 600;
+      white-space: pre-line;
     }
     #result {
-      margin-top: 15px;
+      margin-top: 10px;
       color: #ff5e5e;
       font-weight: bold;
     }
-#requirement,
-#reward {
-    font-size: 18px;
-    font-weight: 600;
-    white-space: pre-line; /* รองรับการขึ้นบรรทัดใหม่จาก \n */
-    line-height: 1.8;
-    color: #fff;
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Quest Record</h2>
-    <form id="playerForm">
-      <label for="playerName">Player:</label>
+    <h2>เลือกเควส</h2>
+    <form id="questForm">
+      <label for="playerName">ชื่อผู้เล่น:</label>
       <select id="playerName" required>
-        <option value="">-- SelectPlayer --</option>
+        <option value="">-- เลือกผู้เล่น --</option>
       </select>
 
-      <label for="job">Role:</label>
-      <select id="job" required>
-        <option value="">-- SelectRole --</option>
+      <label for="questSheet">หัวข้อเควส:</label>
+      <select id="questSheet" required>
+        <option value="">-- เลือกหัวข้อเควส --</option>
+        <option value="Beginner_Quests">Beginner_Quests</option>
+        <option value="Process_Quests">Process_Quests</option>
+        <option value="Labor_Quests">Labor_Quests</option>
+        <option value="NPC_Quests">NPC_Quests</option>
+        <option value="Story_Quests">Story_Quests</option>
+      </select>
+
+      <label for="questTitle">รายการเควส:</label>
+      <select id="questTitle" required>
+        <option value="">-- กรุณาเลือกหัวข้อก่อน --</option>
       </select>
 
       <div class="info">
@@ -87,77 +88,70 @@
         <p><strong>Reward:</strong> <span id="reward">-</span></p>
       </div>
 
-      <button type="submit">submit</button>
+      <button type="submit">บันทึกเควส</button>
       <p id="result"></p>
     </form>
   </div>
+
   <script>
-    const GET_JOBS_URL = "https://script.google.com/macros/s/AKfycbwH6WKRtUMGMIQ0FZNMd5gMsOaHdEgr7Ae8LKjrEep_cXN4h9stn15H7GJbnj_LsrBQOQ/exec?type=jobs";
-    const GET_PLAYERS_URL = "https://script.google.com/macros/s/AKfycbwH6WKRtUMGMIQ0FZNMd5gMsOaHdEgr7Ae8LKjrEep_cXN4h9stn15H7GJbnj_LsrBQOQ/exec?type=players"; // ใส่ URL ที่ให้ข้อมูล player จากชีท Player
-    const SUBMIT_URL = "https://script.google.com/macros/s/AKfycbwH6WKRtUMGMIQ0FZNMd5gMsOaHdEgr7Ae8LKjrEep_cXN4h9stn15H7GJbnj_LsrBQOQ/exec";
-
-    let jobList = [];
-
-    // โหลดอาชีพและเก็บข้อมูลเพื่อแสดง requirement & reward
-    fetch(GET_JOBS_URL)
-      .then(res => res.json())
-      .then(jobs => {
-        jobList = jobs;
-        const jobSelect = document.getElementById("job");
-        jobSelect.innerHTML = '<option value="">-- SelectRole --</option>';
-        jobs.forEach(job => {
-          const option = document.createElement("option");
-          option.value = job.job;
-          option.textContent = job.job;
-          jobSelect.appendChild(option);
-        });
-      })
-      .catch(err => {
-        document.getElementById("job").innerHTML = '<option value="">Error</option>';
-        console.error(err);
-      });
-
-    // แสดง requirement & reward เมื่อเปลี่ยนอาชีพ
-    document.getElementById("job").addEventListener("change", function () {
-      const selected = this.value;
-      const jobData = jobList.find(j => j.job === selected);
-      document.getElementById("requirement").textContent = jobData ? jobData.requirement : "-";
-      document.getElementById("reward").textContent = jobData ? jobData.reward : "-";
-    });
+    const BASE_URL = "https://script.google.com/macros/s/AKfycbx557Fcgz0EJY5nhaIlg2554VV6JzjqfRZoltZ9HVeSN_xsk-d0fU2OnZbXyD489yPMag/exec";
+    let questList = [];
 
     // โหลดรายชื่อผู้เล่น
-    fetch(GET_PLAYERS_URL)
+    fetch(BASE_URL + "?type=players")
       .then(res => res.json())
       .then(players => {
-        const playerSelect = document.getElementById("playerName");
-        playerSelect.innerHTML = '<option value="">-- SelectPlayer --</option>';
+        const select = document.getElementById("playerName");
+        select.innerHTML = '<option value="">-- เลือกผู้เล่น --</option>';
         players.forEach(p => {
           const option = document.createElement("option");
           option.value = p.name;
           option.textContent = `${p.name} (${p.discord}) - ${p.steamId}`;
-          playerSelect.appendChild(option);
+          select.appendChild(option);
         });
-      })
-      .catch(err => {
-        document.getElementById("playerName").innerHTML = '<option value="">Error</option>';
-        console.error(err);
       });
 
-    // ส่งข้อมูลเมื่อ submit
-    document.getElementById("playerForm").addEventListener("submit", function (e) {
+    // เมื่อเลือกหัวข้อเควส
+    document.getElementById("questSheet").addEventListener("change", function () {
+      const sheet = this.value;
+      if (!sheet) return;
+
+      fetch(BASE_URL + "?type=quests&sheet=" + sheet)
+        .then(res => res.json())
+        .then(quests => {
+          questList = quests;
+          const questSelect = document.getElementById("questTitle");
+          questSelect.innerHTML = '<option value="">-- เลือกเควส --</option>';
+          quests.forEach(q => {
+            const option = document.createElement("option");
+            option.value = q.title;
+            option.textContent = q.title;
+            questSelect.appendChild(option);
+          });
+        });
+    });
+
+    // เมื่อเลือกเควส → แสดง requirement/reward
+    document.getElementById("questTitle").addEventListener("change", function () {
+      const quest = questList.find(q => q.title === this.value);
+      document.getElementById("requirement").textContent = quest?.requirement || "-";
+      document.getElementById("reward").textContent = quest?.reward || "-";
+    });
+
+    // ส่งข้อมูลบันทึก
+    document.getElementById("questForm").addEventListener("submit", function (e) {
       e.preventDefault();
       const playerName = document.getElementById("playerName").value;
-      const job = document.getElementById("job").value;
+      const questTitle = document.getElementById("questTitle").value;
 
-      fetch(SUBMIT_URL, {
-		method: "POST",
-		headers: {"Content-Type": "text/plain" // เปลี่ยนจาก "application/json" เพื่อลด CORS
-	},
-	body: JSON.stringify({ playerName, job })
-		})
+      fetch(BASE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ playerName, job: questTitle }) // job = questTitle
+      })
       .then(res => res.text())
-      .then(data => {
-        document.getElementById("result").textContent = "✅ ส่งข้อมูลสำเร็จ";
+      .then(msg => {
+        document.getElementById("result").textContent = "✅ บันทึกสำเร็จ";
       })
       .catch(err => {
         document.getElementById("result").textContent = "❌ เกิดข้อผิดพลาด";
