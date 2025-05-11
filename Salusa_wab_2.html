@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>QuestsRecord</title>
+</head>
+<body>
+  <h2>QuestsRecord</h2>
+
+  <form id="playerForm">
+    <label for="playerName">PlayerName:</label><br>
+    <select id="playerName" required>
+      <option value="">-- Loading.. --</option>
+    </select><br><br>
+
+    <label for="job">Role:</label><br>
+    <select id="job" required>
+      <option value="">-- Loading.. --</option>
+    </select><br><br>
+
+    <p><strong>Requirement:</strong> <span id="requirement">-</span></p>
+    <p><strong>Reward:</strong> <span id="reward">-</span></p>
+
+    <br>
+    <button type="submit">ส่งข้อมูล</button>
+  </form>
+
+  <p id="result"></p>
+
+  <script>
+    const GET_JOBS_URL = "https://script.google.com/macros/s/AKfycbwH6WKRtUMGMIQ0FZNMd5gMsOaHdEgr7Ae8LKjrEep_cXN4h9stn15H7GJbnj_LsrBQOQ/exec?type=jobs";
+    const GET_PLAYERS_URL = "https://script.google.com/macros/s/AKfycbwH6WKRtUMGMIQ0FZNMd5gMsOaHdEgr7Ae8LKjrEep_cXN4h9stn15H7GJbnj_LsrBQOQ/exec?type=players"; // ใส่ URL ที่ให้ข้อมูล player จากชีท Player
+    const SUBMIT_URL = "https://script.google.com/macros/s/AKfycbwH6WKRtUMGMIQ0FZNMd5gMsOaHdEgr7Ae8LKjrEep_cXN4h9stn15H7GJbnj_LsrBQOQ/exec";
+
+    let jobList = [];
+
+    // โหลดอาชีพและเก็บข้อมูลเพื่อแสดง requirement & reward
+    fetch(GET_JOBS_URL)
+      .then(res => res.json())
+      .then(jobs => {
+        jobList = jobs;
+        const jobSelect = document.getElementById("job");
+        jobSelect.innerHTML = '<option value="">-- เลือกอาชีพ --</option>';
+        jobs.forEach(job => {
+          const option = document.createElement("option");
+          option.value = job.job;
+          option.textContent = job.job;
+          jobSelect.appendChild(option);
+        });
+      })
+      .catch(err => {
+        document.getElementById("job").innerHTML = '<option value="">โหลดไม่สำเร็จ</option>';
+        console.error(err);
+      });
+
+    // แสดง requirement & reward เมื่อเปลี่ยนอาชีพ
+    document.getElementById("job").addEventListener("change", function () {
+      const selected = this.value;
+      const jobData = jobList.find(j => j.job === selected);
+      document.getElementById("requirement").textContent = jobData ? jobData.requirement : "-";
+      document.getElementById("reward").textContent = jobData ? jobData.reward : "-";
+    });
+
+    // โหลดรายชื่อผู้เล่น
+    fetch(GET_PLAYERS_URL)
+      .then(res => res.json())
+      .then(players => {
+        const playerSelect = document.getElementById("playerName");
+        playerSelect.innerHTML = '<option value="">-- เลือกผู้เล่น --</option>';
+        players.forEach(p => {
+          const option = document.createElement("option");
+          option.value = p.name;
+          option.textContent = `${p.name} (${p.discord}) - ${p.steamId}`;
+          playerSelect.appendChild(option);
+        });
+      })
+      .catch(err => {
+        document.getElementById("playerName").innerHTML = '<option value="">โหลดไม่สำเร็จ</option>';
+        console.error(err);
+      });
+
+    // ส่งข้อมูลเมื่อ submit
+    document.getElementById("playerForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const playerName = document.getElementById("playerName").value;
+      const job = document.getElementById("job").value;
+
+      fetch(SUBMIT_URL, {
+		method: "POST",
+		headers: {"Content-Type": "text/plain" // เปลี่ยนจาก "application/json" เพื่อลด CORS
+	},
+	body: JSON.stringify({ playerName, job })
+		})
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById("result").textContent = "✅ ส่งข้อมูลสำเร็จ";
+      })
+      .catch(err => {
+        document.getElementById("result").textContent = "❌ เกิดข้อผิดพลาด";
+      });
+    });
+  </script>
+</body>
+</html>
