@@ -65,11 +65,12 @@
       <p><strong>📘 Beginner_Quests:</strong></p><ul id="playerBeginner"></ul>
       <p><strong>🛠 Labor_Quests:</strong></p><ul id="playerLabor"></ul>
       <p><strong>💬 Discord:</strong></p><ul id="playerDiscord"></span></ul>
+      <p><strong>💬 Steam ID:</strong></p><ul id="playerSteamID"></span></ul>
     </div>
   </div>
 
   <script>
-    const BASE_URL = "https://script.google.com/macros/s/AKfycbzwla_CkzVN0cep1BV7nmWzLWEi_hDMYIjOAXy2wIxQ_jK96TpfxZTkXBjFuXlhwaVcyQ/exec";
+    const BASE_URL = "https://script.google.com/macros/s/AKfycbxW7hZo3QdSglLMoU7zsx1oouR5ZJyVtX0O0-GD9Cpyl2vj_KPKdjGczoYfTsXRFkbUxw/exec";
     let playerData = [];
 
     fetch(BASE_URL + "?type=players")
@@ -92,6 +93,7 @@
       document.getElementById("playerBeginner").textContent = player?.beginner || "ไม่พบอาชีพ";
       document.getElementById("playerLabor").textContent = player?.labor || "ไม่พบอาชีพ";
       document.getElementById("playerDiscord").textContent = player?.discord || "-";
+      document.getElementById("playerSteamID").textContent = player?.steamid || "-";
 
     });
   </script>
